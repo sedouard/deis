@@ -55,6 +55,8 @@ parser.add_argument('--data-disk', action='store_true',
                    help='optional, attaches a data disk to each VM')
 parser.add_argument('--nohttps', action='store_true',
                    help='optional, disables the creation of the https load balanced endpoint')
+parser.add_argument('--no-discovery-url', action='store_true',
+                   help='optional, disables the creation of a new coreos discovery url')
 
 cloud_init_template = """#cloud-config
 
@@ -85,6 +87,11 @@ if not args.ssh_cert and not args.ssh_thumb:
       args.ssh_thumb = thumbprint.split('=')[1].replace('\n', '')
       args.ssh_cert = './ssh-cert.cer'
   print 'Generated SSH certificate with thumbprint ' + args.ssh_thumb
+
+# generate coreos discovery url
+if not args.no_discovery_url:
+  print 'Generating new CoreOS discovery URL for the cluster'
+  subprocess.call(['bash', '-c', 'python ./create-azure-user-data $(curl -s https://discovery.etcd.io/new)'])
 
 # Setup custom data
 if args.custom_data:
